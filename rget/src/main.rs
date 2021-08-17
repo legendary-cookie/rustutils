@@ -1,4 +1,5 @@
 mod cli;
+mod convert;
 
 use std::cmp::min;
 use std::fs::File;
@@ -35,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /* REST OF THE STUFF */
     static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
     let redirect_policy = reqwest::redirect::Policy::custom(|attempt| {
-        println!("DEBUG; REDIRECT!");
+        //println!("DEBUG; REDIRECT!");
         attempt.follow()
     });
     let client = reqwest::Client::builder()
@@ -52,7 +53,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     total = res
         .content_length()
         .ok_or(format!("Failed to get content length from {}", &url))?;
-    println!("Total size: {:?} MB", total / 1024 / 1024);
+    println!("Total size: {}", convert::convert(total as f64));
     let pb = ProgressBar::new(total);
     pb.set_style(ProgressStyle::default_bar()
         .template("{msg}\n{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")
