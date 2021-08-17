@@ -21,3 +21,9 @@ features = ["suggestions", "color" ]
 
 [build-dependencies]
 clap = "2.3.3"
+
+
+[profile.release]
+codegen-units = 1
+panic = "abort"
+lto = true
