@@ -49,8 +49,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .send()
         .await
         .or(Err(format!("Failed to GET from '{}'", &url)))?;
-    let total;
-    total = res
+    if res.status() != 200 {
+        println!("Got Status {}", res.status());
+        std::process::exit(-1);
+    }
+    let total = res
         .content_length()
         .ok_or(format!("Failed to get content length from {}", &url))?;
     println!("Total size: {}", convert::convert(total as f64));
