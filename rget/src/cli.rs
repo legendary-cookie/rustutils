@@ -2,7 +2,7 @@ use clap::{App, Arg};
 
 pub fn build_cli() -> App<'static, 'static> {
     App::new("rget")
-        .version("0.1.0")
+        .version(env!("CARGO_PKG_VERSION"))
         .author("Vincent S. <github.com@xolley.de>")
         .help("Download files with a nice little progress bar")
         .arg(

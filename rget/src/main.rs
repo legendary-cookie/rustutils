@@ -14,9 +14,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let url;
     let path;
     if let Some(u) = matches.value_of("URL") {
-        url = u;
+        if u.starts_with("http://") || u.starts_with("https://") {
+            url = u;
+        } else {
+            println!("You have to supply an url starting with either http:// or https://");
+            std::process::exit(-1);
+        }
     } else {
-        url = "";
+        std::process::exit(-1);
     }
     if let Some(p) = matches.value_of("PATH") {
         path = p;
@@ -29,7 +34,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     /* REST OF THE STUFF */
     let client = reqwest::Client::new();
-    println!("Will download {} to {}", url, path);
     // Reqwest setup
     let res = client
         .get(url)
