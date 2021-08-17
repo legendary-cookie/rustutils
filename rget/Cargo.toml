@@ -1,0 +1,22 @@
+[package]
+name = "rget"
+version = "0.1.0"
+authors = ["cook1e <vincent.schweiger@xolley.de>"]
+edition = "2018"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+futures-util = "0.3.16"
+indicatif = "0.16.2"
+reqwest = { version = "0.11", features = ["stream"] }
+tokio = { version = "1", features = ["full"] }
+
+[dependencies.clap]
+version = "2.3.3"
+features = ["suggestions", "color" ]
+
+
+[build-dependencies]
+clap = "2.3.3"
