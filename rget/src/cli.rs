@@ -3,8 +3,7 @@ use clap::{App, Arg};
 pub fn build_cli() -> App<'static, 'static> {
     App::new("rget")
         .version(env!("CARGO_PKG_VERSION"))
-        .author("Vincent S. <github.com@xolley.de>")
-        .help("Download files with a nice little progress bar")
+        .author("legendary-cookie <github.com@xolley.de>")
         .arg(
             Arg::with_name("multiple")
                 .help("Enable downloading a list of urls")

@@ -78,6 +78,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "common"
+version = "0.1.0"
+
+[[package]]
 name = "console"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -737,6 +741,7 @@ name = "rget"
 version = "0.1.2"
 dependencies = [
  "clap",
+ "common",
  "futures-util",
  "indicatif",
  "reqwest",

@@ -1,5 +1,4 @@
 mod cli;
-mod convert;
 
 use std::cmp::min;
 use std::fs::File;
@@ -14,14 +13,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = cli::build_cli().get_matches();
     let url;
     let path;
-    let multiple = false;
+    let mut multiple = false;
     if let Some(_m) = matches.value_of("multiple") {
-        mutliple = true;
+        multiple = true;
     }
     if let Some(u) = matches.value_of("URL") {
         if multiple {
-            let urls = u.split(",");
+            let _urls = u.split(",");
             // TODO: implement multiple urls
+            std::process::exit(-1);
         } else {
             if u.starts_with("http://") || u.starts_with("https://") {
                 url = u;
@@ -65,7 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let total = res
         .content_length()
         .ok_or(format!("Failed to get content length from {}", &url))?;
-    println!("Total size: {}", convert::convert(total as f64));
+    println!("Total size: {}", common::byteconvert::convert(total as f64));
     let pb = ProgressBar::new(total);
     pb.set_style(ProgressStyle::default_bar()
         .template("{msg}\n{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")
