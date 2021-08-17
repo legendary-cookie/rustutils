@@ -19,16 +19,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     if let Some(u) = matches.value_of("URL") {
         if multiple {
-            let _urls = u.split(",");
+            let _urls = u.split(',');
             // TODO: implement multiple urls
             std::process::exit(-1);
+        } else if u.starts_with("http://") || u.starts_with("https://") {
+            url = u;
         } else {
-            if u.starts_with("http://") || u.starts_with("https://") {
-                url = u;
-            } else {
-                println!("You have to supply an url starting with either http:// or https://");
-                std::process::exit(-1);
-            }
+            println!("You have to supply an url starting with either http:// or https://");
+            std::process::exit(-1);
         }
     } else {
         std::process::exit(-1);
@@ -38,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         // Use the filename from the url
         // e.g: http://www.africau.edu/images/default/sample.pdf will turn into sample.pdf
-        let split = url.split("/");
+        let split = url.split('/');
         let vec: Vec<&str> = split.collect();
         path = vec[vec.len() - 1];
     }
@@ -57,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get(url)
         .send()
         .await
-        .or(Err(format!("Failed to GET from '{}'", &url)))?;
+        .or_else(|_| Err(format!("Failed to GET from '{}'", &url)))?;
     if res.status() != 200 {
         println!("Got Status {}", res.status());
         std::process::exit(-1);
@@ -72,13 +70,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .progress_chars("#>-"));
     pb.set_message(format!("Downloading {}", url));
     // Download chunks
-    let mut file = File::create(path).or(Err(format!("Failed to create file '{}'", path)))?;
+    let mut file = File::create(path).or_else(|_| Err(format!("Failed to create file '{}'", path)))?;
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
     while let Some(item) = stream.next().await {
-        let chunk = item.or(Err(format!("Error while downloading file")))?;
+        let chunk = item.or(Err("Error while downloading file".to_string()))?;
         file.write(&chunk)
-            .or(Err(format!("Error while writing to file")))?;
+            .or_else(|_| Err("Error while writing to file".to_string()))?;
         let new = min(downloaded + (chunk.len() as u64), total);
         downloaded = new;
         pb.set_position(new);
