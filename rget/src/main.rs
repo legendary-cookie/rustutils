@@ -13,7 +13,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = cli::build_cli().get_matches();
     let url;
     let path;
-
     if let Some(u) = matches.value_of("URL") {
         if u.starts_with("http://") || u.starts_with("https://") {
             url = u;
@@ -33,7 +32,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let vec: Vec<&str> = split.collect();
         path = vec[vec.len() - 1];
     }
-
     /* REST OF THE STUFF */
     static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
     let redirect_policy = reqwest::redirect::Policy::custom(|attempt| {
@@ -73,6 +71,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         pb.set_position(new);
     }
     pb.finish_with_message(format!("Downloaded {} to {}", url, path));
-
     Ok(())
 }
