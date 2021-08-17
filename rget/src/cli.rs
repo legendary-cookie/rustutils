@@ -6,6 +6,13 @@ pub fn build_cli() -> App<'static, 'static> {
         .author("Vincent S. <github.com@xolley.de>")
         .help("Download files with a nice little progress bar")
         .arg(
+            Arg::with_name("multiple")
+                .help("Enable downloading a list of urls")
+                .required(false)
+                .short("m")
+                .long("multiple"),
+        )
+        .arg(
             Arg::with_name("URL")
                 .help("The url to download the files")
                 .required(true)

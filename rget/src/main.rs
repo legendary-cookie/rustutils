@@ -14,12 +14,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = cli::build_cli().get_matches();
     let url;
     let path;
+    let multiple = false;
+    if let Some(_m) = matches.value_of("multiple") {
+        mutliple = true;
+    }
     if let Some(u) = matches.value_of("URL") {
-        if u.starts_with("http://") || u.starts_with("https://") {
-            url = u;
+        if multiple {
+            let urls = u.split(",");
+            // TODO: implement multiple urls
         } else {
-            println!("You have to supply an url starting with either http:// or https://");
-            std::process::exit(-1);
+            if u.starts_with("http://") || u.starts_with("https://") {
+                url = u;
+            } else {
+                println!("You have to supply an url starting with either http:// or https://");
+                std::process::exit(-1);
+            }
         }
     } else {
         std::process::exit(-1);
