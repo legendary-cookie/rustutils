@@ -29,10 +29,10 @@ mod tests {
     }
     #[test]
     fn megabyte() {
-        assert_eq!(convert((1024*1024) as f64), "1 MB")
+        assert_eq!(convert((1024 * 1024) as f64), "1 MB")
     }
     #[test]
     fn gigabyte() {
-        assert_eq!(convert((1024*1024*1024) as f64), "1 GB")
+        assert_eq!(convert((1024 * 1024 * 1024) as f64), "1 GB")
     }
 }
