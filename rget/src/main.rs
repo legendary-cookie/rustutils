@@ -36,7 +36,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     /* REST OF THE STUFF */
     static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
-    let redirect_policy = reqwest::redirect::Policy::custom(|attempt| attempt.follow());
+    let redirect_policy = reqwest::redirect::Policy::custom(|attempt| {
+        println!("DEBUG; REDIRECT!");
+        attempt.follow()
+    });
     let client = reqwest::Client::builder()
         .redirect(redirect_policy)
         .user_agent(APP_USER_AGENT)
@@ -47,7 +50,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .send()
         .await
         .or(Err(format!("Failed to GET from '{}'", &url)))?;
-    let total = res
+    let total;
+    total = res
         .content_length()
         .ok_or(format!("Failed to get content length from {}", &url))?;
     println!("Total size: {:?} MB", total / 1024 / 1024);
