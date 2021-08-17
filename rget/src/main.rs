@@ -70,7 +70,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .progress_chars("#>-"));
     pb.set_message(format!("Downloading {}", url));
     // Download chunks
-    let mut file = File::create(path).or_else(|_| Err(format!("Failed to create file '{}'", path)))?;
+    let mut file =
+        File::create(path).or_else(|_| Err(format!("Failed to create file '{}'", path)))?;
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
     while let Some(item) = stream.next().await {
