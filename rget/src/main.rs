@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path;
     let mut multiple = false;
     let threads = clap::value_t!(matches.value_of("threads"), u64).unwrap_or_else(|e| e.exit());
-    if let Some(_) = matches.value_of("multiple") {
+    if matches.value_of("multiple").is_some() {
         multiple = true;
     }
     if let Some(u) = matches.value_of("URL") {
@@ -72,8 +72,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         start: last,
                         end: single * i,
                     };
-                    let localpath = format!("{}~{}", <&str>::clone(&&path), i);
-                    let localurl = format!("{}", <&str>::clone(&&url));
+                    let localpath = format!("{}~{}", <&str>::clone(&path), i);
+                    let localurl = <&str>::clone(&url).to_string();
                     /*
                     println!(
                         "{} - {}",
@@ -131,7 +131,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
     while let Some(item) = stream.next().await {
-        let chunk = item.or(Err("Error while downloading file".to_string()))?;
+        let chunk = item.or_else(|_| Err("Error while downloading file".to_string()))?;
         file.write(&chunk)
             .map_err(|_| "Error while writing to file".to_string())?;
         let new = min(downloaded + (chunk.len() as u64), total);
