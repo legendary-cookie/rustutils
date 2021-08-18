@@ -1,10 +1,6 @@
 extern crate indicatif;
 extern crate reqwest;
 
-
-
-
-
 pub struct DownloadRange {
     pub start: u64,
     pub end: u64,

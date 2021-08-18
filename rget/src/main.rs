@@ -61,7 +61,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let headers = res.headers();
     if threads > 1 {
         if headers.contains_key(reqwest::header::ACCEPT_RANGES) {
-            let mut threadmap: Vec<Option<std::thread::JoinHandle<()>>> = Vec::new();
+            let mut threadmap: Vec<Option<tokio::task::JoinHandle<()>>> = Vec::new();
             let single = total / threads;
             let mut i = 0;
             let mut last = 0;
@@ -73,15 +73,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         start: last,
                         end: single * i,
                     };
-                    let localpath = format!("{}~{}", <&str>::clone(path), i);
+                    let localpath = format!("{}~{}", <&str>::clone(&&path), i);
                     println!(
                         "{} - {}",
                         common::byteconvert::convert(last as f64),
                         common::byteconvert::convert((single * i) as f64)
                     );
-                    let handle = std::thread::spawn(move || {
+                    let handle = tokio::spawn(async move {
                         println!("CHUNK TO {}", localpath);
-                        await download::download_range(localpath, range);
+                        download::download_range(localpath, range).await;
                     });
                     threadmap.push(Some(handle));
                     last = single * i + 1;
@@ -90,7 +90,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             for t in threadmap.iter_mut() {
                 if let Some(handle) = t.take() {
-                    handle.join().expect("failed to join thread");
+                    handle.await.expect("failed to join thread");
                 }
             }
             std::process::exit(0);
@@ -112,7 +112,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
     while let Some(item) = stream.next().await {
-        let chunk = item.or_else(|| Err("Error while downloading file".to_string()))?;
+        let chunk = item.or(Err("Error while downloading file".to_string()))?;
         file.write(&chunk)
             .map_err(|_| "Error while writing to file".to_string())?;
         let new = min(downloaded + (chunk.len() as u64), total);
