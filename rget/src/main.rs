@@ -62,14 +62,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if threads > 1 {
         if headers.contains_key(reqwest::header::ACCEPT_RANGES) {
             let mut threadmap: Vec<Option<std::thread::JoinHandle<()>>> = Vec::new();
-            let single_range = total / threads;
+            let single = total / threads;
             let mut i = 0;
-            while i < threads {
-                let handle = std::thread::spawn(|| {
-                    println!("thread, ID: {:?}", std::thread::current().id());
-                });
-                threadmap.push(Some(handle));
-                i = i + 1;
+            let mut last = 0;
+            while i < threads + 1 {
+                if i == 0 {
+                    i = i + 1
+                } else {
+                    println!("From: {}\n\tTo: {}", last, single * i);
+                    let handle = std::thread::spawn(|| {
+                        //println!("thread, ID: {:?}", std::thread::current().id());
+                    });
+                    threadmap.push(Some(handle));
+                    last = single * i + 1;
+                    i = i + 1;
+                }
             }
             for t in threadmap.iter_mut() {
                 if let Some(handle) = t.take() {
