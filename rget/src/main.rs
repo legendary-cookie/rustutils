@@ -69,7 +69,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if i == 0 {
                     i = i + 1
                 } else {
-                    println!("From: {}\n\tTo: {}", last, single * i);
+                    println!(
+                        "{} - {}",
+                        common::byteconvert::convert(last as f64),
+                        common::byteconvert::convert((single * i) as f64)
+                    );
                     let handle = std::thread::spawn(|| {
                         //println!("thread, ID: {:?}", std::thread::current().id());
                     });
