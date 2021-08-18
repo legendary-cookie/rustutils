@@ -69,13 +69,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if i == 0 {
                     i = i + 1
                 } else {
+                    let range = download::DownloadRange {
+                        start: last,
+                        end: single * i,
+                    };
                     println!(
                         "{} - {}",
                         common::byteconvert::convert(last as f64),
                         common::byteconvert::convert((single * i) as f64)
                     );
                     let handle = std::thread::spawn(|| {
-                        //println!("thread, ID: {:?}", std::thread::current().id());
+                        let localpath = format!("{}~{}", path, i);
+                        download::download_range(&localpath, &range);
                     });
                     threadmap.push(Some(handle));
                     last = single * i + 1;
