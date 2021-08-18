@@ -3,8 +3,6 @@ extern crate utils;
 
 use std::cmp::min;
 use std::fs::File;
-use std::io::BufReader;
-use std::io::BufWriter;
 use std::io::Write;
 
 use futures_util::StreamExt;
@@ -105,8 +103,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(handle) = t.take() {
                     handle.await.expect("Something wrent wrong in a task");
                     let fname = format!("{}~{}", path, a);
-                    let mut local_file = std::fs::File::open(fname);
-                    let reader = BufReader::new(local_file);
+                    let mut reader = my_reader::BufReader::open(fname.clone())?;
+                    let mut buffer = String::new();
+                    while let Some(line) = reader.read_line(&mut buffer) {
+                        f.write_all(line?.as_bytes())?;
+                    }
                 }
                 a += 1;
             }
@@ -138,4 +139,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     pb.finish_with_message(format!("Downloaded {} to {}", url, path));
     Ok(())
+}
+
+mod my_reader {
+    use std::{
+        fs::File,
+        io::{self, prelude::*},
+    };
+
+    pub struct BufReader {
+        reader: io::BufReader<File>,
+    }
+
+    impl BufReader {
+        pub fn open(path: impl AsRef<std::path::Path>) -> io::Result<Self> {
+            let file = File::open(path)?;
+            let reader = io::BufReader::new(file);
+
+            Ok(Self { reader })
+        }
+
+        pub fn read_line<'buf>(
+            &mut self,
+            buffer: &'buf mut String,
+        ) -> Option<io::Result<&'buf mut String>> {
+            buffer.clear();
+
+            self.reader
+                .read_line(buffer)
+                .map(|u| if u == 0 { None } else { Some(buffer) })
+                .transpose()
+        }
+    }
 }
