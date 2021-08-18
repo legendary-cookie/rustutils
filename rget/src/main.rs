@@ -56,11 +56,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let total = res
         .content_length()
         .ok_or(format!("Failed to get content length from {}", &url))?;
-    let pb = ProgressBar::new(total);
-    pb.set_style(ProgressStyle::default_bar()
-        .template("{msg}\n{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")
-        .progress_chars("#>-"));
-    pb.set_message(format!("Downloading {}", url));
     println!("Total size: {}", common::byteconvert::convert(total as f64));
     let headers = res.headers();
     if threads > 1 {
@@ -79,11 +74,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     };
                     let localpath = format!("{}~{}", <&str>::clone(&&path), i);
                     let localurl = format!("{}", <&str>::clone(&&url));
+                    /*
                     println!(
                         "{} - {}",
                         common::byteconvert::convert(last as f64),
                         common::byteconvert::convert((single * i) as f64)
                     );
+                    */
                     let handle = tokio::spawn(async move {
                         // println!("CHUNK TO {}", localpath);
                         utils::download::download_range(&localurl, &localpath, range)
@@ -109,7 +106,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             std::process::exit(-1);
         }
     }
-    // Download
+    // Download for single threaded stuff
+    let pb = ProgressBar::new(total);
+    pb.set_style(ProgressStyle::default_bar()
+        .template("{msg}\n{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")
+        .progress_chars("#>-"));
+    pb.set_message(format!("Downloading {}", url));
     let mut file = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
