@@ -6,8 +6,8 @@ use reqwest::Client;
 use reqwest::Response;
 
 pub struct DownloadRange {
-    start: u64,
-    end: u64,
+    pub start: u64,
+    pub end: u64,
 }
 
-pub async fn download_range(path: &str, range: &DownloadRange) {}
+pub async fn download_range(path: String, range: DownloadRange) {}

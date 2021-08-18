@@ -73,14 +73,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         start: last,
                         end: single * i,
                     };
+                    let localpath = format!("{}~{}", path.clone(), i);
                     println!(
                         "{} - {}",
                         common::byteconvert::convert(last as f64),
                         common::byteconvert::convert((single * i) as f64)
                     );
-                    let handle = std::thread::spawn(|| {
-                        let localpath = format!("{}~{}", path, i);
-                        download::download_range(&localpath, &range);
+                    let handle = std::thread::spawn(move || {
+                        println!("CHUNK TO {}", localpath);
+                        download::download_range(localpath, range);
                     });
                     threadmap.push(Some(handle));
                     last = single * i + 1;
