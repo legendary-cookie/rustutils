@@ -3,6 +3,8 @@ extern crate utils;
 
 use std::cmp::min;
 use std::fs::File;
+use std::io::BufReader;
+use std::io::BufWriter;
 use std::io::Write;
 
 use futures_util::StreamExt;
@@ -92,10 +94,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     i += 1;
                 }
             }
+            let mut f = std::fs::OpenOptions::new()
+                .write(true)
+                .append(true)
+                .create(true)
+                .open(path)
+                .map_err(|_| format!("Failed to create file '{}'", path))?;
+            let mut a = 1;
             for t in threadmap.iter_mut() {
                 if let Some(handle) = t.take() {
                     handle.await.expect("Something wrent wrong in a task");
+                    let fname = format!("{}~{}", path, a);
+                    let mut local_file = std::fs::File::open(fname);
+                    let reader = BufReader::new(local_file);
+                    reader;
                 }
+                a += 1;
             }
             std::process::exit(0);
         } else {
