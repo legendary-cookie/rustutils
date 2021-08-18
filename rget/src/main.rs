@@ -1,6 +1,5 @@
 mod cli;
-mod download;
-mod factory;
+extern crate utils;
 
 use std::cmp::min;
 use std::fs::File;
@@ -44,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         path = vec[vec.len() - 1];
     }
     /* REST OF THE STUFF */
-    let client = &factory::build_client()?;
+    let client = &utils::factory::build_client()?;
     let res = client
         .get(url)
         .send()
@@ -69,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if i == 0 {
                     i += 1
                 } else {
-                    let range = download::DownloadRange {
+                    let range = utils::download::DownloadRange {
                         start: last,
                         end: single * i,
                     };
@@ -81,7 +80,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     );
                     let handle = tokio::spawn(async move {
                         println!("CHUNK TO {}", localpath);
-                        download::download_range(localpath, range).await;
+                        utils::download::download_range(localpath, range).await;
                     });
                     threadmap.push(Some(handle));
                     last = single * i + 1;
@@ -90,7 +89,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             for t in threadmap.iter_mut() {
                 if let Some(handle) = t.take() {
-                    handle.await.expect("failed to join thread");
+                    handle.await.expect("Something wrent wrong in a task");
                 }
             }
             std::process::exit(0);
