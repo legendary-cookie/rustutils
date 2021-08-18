@@ -25,7 +25,7 @@ mod tests {
     use super::*;
     #[test]
     fn kilobyte() {
-        assert_eq!(convert(1024 as f64), "1 kB")
+        assert_eq!(convert(1024_f64), "1 kB")
     }
     #[test]
     fn megabyte() {

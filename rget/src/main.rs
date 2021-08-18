@@ -49,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get(url)
         .send()
         .await
-        .or_else(|_| Err(format!("Failed to GET from '{}'", &url)))?;
+        .map_err(|_| format!("Failed to GET from '{}'", &url))?;
     if res.status() != 200 && res.status() != 206 {
         println!("Got Status {}", res.status());
         std::process::exit(-1);
@@ -67,13 +67,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut last = 0;
             while i < threads + 1 {
                 if i == 0 {
-                    i = i + 1
+                    i += 1
                 } else {
                     let range = download::DownloadRange {
                         start: last,
                         end: single * i,
                     };
-                    let localpath = format!("{}~{}", path.clone(), i);
+                    let localpath = format!("{}~{}", <&str>::clone(path), i);
                     println!(
                         "{} - {}",
                         common::byteconvert::convert(last as f64),
@@ -81,11 +81,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     );
                     let handle = std::thread::spawn(move || {
                         println!("CHUNK TO {}", localpath);
-                        download::download_range(localpath, range);
+                        await download::download_range(localpath, range);
                     });
                     threadmap.push(Some(handle));
                     last = single * i + 1;
-                    i = i + 1;
+                    i += 1;
                 }
             }
             for t in threadmap.iter_mut() {
@@ -108,14 +108,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .progress_chars("#>-"));
     pb.set_message(format!("Downloading {}", url));
     // Download
-    let mut file =
-        File::create(path).or_else(|_| Err(format!("Failed to create file '{}'", path)))?;
+    let mut file = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
     while let Some(item) = stream.next().await {
-        let chunk = item.or(Err("Error while downloading file".to_string()))?;
+        let chunk = item.or_else(|| Err("Error while downloading file".to_string()))?;
         file.write(&chunk)
-            .or_else(|_| Err("Error while writing to file".to_string()))?;
+            .map_err(|_| "Error while writing to file".to_string())?;
         let new = min(downloaded + (chunk.len() as u64), total);
         downloaded = new;
         pb.set_position(new);
