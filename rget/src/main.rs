@@ -63,12 +63,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let headers = res.headers();
     if threads > 1 {
-        if headers.contains_key("Accept-Ranges") {
+        if headers.contains_key(reqwest::header::ACCEPT_RANGES) {
+            let mut threadmap: Vec<Option<std::thread::JoinHandle<()>>> = Vec::new();
+            let mut i = 0;
+            while i < threads {
+                let handle = std::thread::spawn(|| {
+                    println!("thread, ID: {:?}", std::thread::current().id());
+                });
+                threadmap.push(Some(handle));
+                i = i + 1;
+            }
+            for t in threadmap.iter_mut() {
+                if let Some(handle) = t.take() {
+                    handle.join().expect("failed to join thread");
+                }
+            }
+            std::process::exit(0);
         } else {
             println!(
                 "The server doesn't support ranges. 
             Specify only one thread to download from here."
-            )
+            );
+            std::process::exit(-1);
         }
     }
     let total = res
