@@ -108,6 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     while let Some(line) = reader.read_line(&mut buffer) {
                         f.write_all(line?.as_bytes())?;
                     }
+                    std::fs::remove_file(fname)?;
                 }
                 a += 1;
             }
