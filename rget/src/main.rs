@@ -44,7 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         path = vec[vec.len() - 1];
     }
     /* REST OF THE STUFF */
-    let client = factory::build_client()?;
+    let client = &factory::build_client()?;
     let res = client
         .get(url)
         .send()
@@ -67,13 +67,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             while i < threads {
                 let handle = std::thread::spawn(|| {
                     println!("thread, ID: {:?}", std::thread::current().id());
-                    download::download_range(
-                        factory::build_client()?,
-                        res,
-                        url,
-                        path,
-                        total - single_range * i,
-                    )
                 });
                 threadmap.push(Some(handle));
                 i = i + 1;
