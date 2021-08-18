@@ -9,5 +9,5 @@ lastsingle = 0
 for a in range(threads+1):
     if a == 0:
         continue
-    print("From: {}\n To: {}".format(lastsingle, single*a))
+    print("From: {}\n\tTo: {}".format(lastsingle, single*a))
     lastsingle = single*a+1
