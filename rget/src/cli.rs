@@ -12,6 +12,15 @@ pub fn build_cli() -> App<'static, 'static> {
                 .long("multiple"),
         )
         .arg(
+            Arg::with_name("threads")
+                .help("How many threads to use")
+                .required(false)
+                .default_value("1")
+                .takes_value(true)
+                .short("t")
+                .long("threads"),
+        )
+        .arg(
             Arg::with_name("URL")
                 .help("The url to download the files")
                 .required(true)

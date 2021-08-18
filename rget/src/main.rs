@@ -14,6 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let url;
     let path;
     let mut multiple = false;
+    let threads = clap::value_t!(matches.value_of("threads"), u64).unwrap_or_else(|e| e.exit());
     if let Some(_m) = matches.value_of("multiple") {
         multiple = true;
     }
@@ -56,9 +57,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .send()
         .await
         .or_else(|_| Err(format!("Failed to GET from '{}'", &url)))?;
-    if res.status() != 200 {
+    if res.status() != 200 && res.status() != 206 {
         println!("Got Status {}", res.status());
         std::process::exit(-1);
+    }
+    let headers = res.headers();
+    if threads > 1 {
+        if headers.contains_key("Accept-Ranges") {
+        } else {
+            println!(
+                "The server doesn't support ranges. 
+            Specify only one thread to download from here."
+            )
+        }
     }
     let total = res
         .content_length()
