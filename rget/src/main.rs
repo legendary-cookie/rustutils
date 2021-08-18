@@ -1,4 +1,5 @@
 mod cli;
+mod download;
 
 use std::cmp::min;
 use std::fs::File;
@@ -51,7 +52,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .redirect(redirect_policy)
         .user_agent(APP_USER_AGENT)
         .build()?;
-    // Reqwest setup
     let res = client
         .get(url)
         .send()
@@ -61,10 +61,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Got Status {}", res.status());
         std::process::exit(-1);
     }
+    let total = res
+        .content_length()
+        .ok_or(format!("Failed to get content length from {}", &url))?;
+    println!("Total size: {}", common::byteconvert::convert(total as f64));
     let headers = res.headers();
     if threads > 1 {
         if headers.contains_key(reqwest::header::ACCEPT_RANGES) {
             let mut threadmap: Vec<Option<std::thread::JoinHandle<()>>> = Vec::new();
+            let single_range = total / threads;
             let mut i = 0;
             while i < threads {
                 let handle = std::thread::spawn(|| {
@@ -87,16 +92,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             std::process::exit(-1);
         }
     }
-    let total = res
-        .content_length()
-        .ok_or(format!("Failed to get content length from {}", &url))?;
-    println!("Total size: {}", common::byteconvert::convert(total as f64));
     let pb = ProgressBar::new(total);
     pb.set_style(ProgressStyle::default_bar()
         .template("{msg}\n{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")
         .progress_chars("#>-"));
     pb.set_message(format!("Downloading {}", url));
-    // Download chunks
+    // Download
     let mut file =
         File::create(path).or_else(|_| Err(format!("Failed to create file '{}'", path)))?;
     let mut downloaded: u64 = 0;
