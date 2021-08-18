@@ -35,7 +35,7 @@ pub async fn download_range(
     let mut file = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
     let mut stream = res.bytes_stream();
     while let Some(item) = stream.next().await {
-        let chunk = item.or_else(|_| Err("Error while downloading file".to_string()))?;
+        let chunk = item.map_err(|_| "Error while downloading file".to_string())?;
         file.write(&chunk)
             .map_err(|_| "Error while writing to file".to_string())?;
     }

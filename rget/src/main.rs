@@ -131,7 +131,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
     while let Some(item) = stream.next().await {
-        let chunk = item.or_else(|_| Err("Error while downloading file".to_string()))?;
+        let chunk = item.map_err(|_| "Error while downloading file".to_string())?;
         file.write(&chunk)
             .map_err(|_| "Error while writing to file".to_string())?;
         let new = min(downloaded + (chunk.len() as u64), total);
