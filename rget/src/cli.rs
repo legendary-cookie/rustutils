@@ -21,6 +21,12 @@ pub fn build_cli() -> App<'static, 'static> {
                 .long("threads"),
         )
         .arg(
+            Arg::with_name("v")
+                .short("v")
+                .multiple(true)
+                .help("Sets the level of verbosity"),
+        )
+        .arg(
             Arg::with_name("URL")
                 .help("The url to download the files")
                 .required(true)

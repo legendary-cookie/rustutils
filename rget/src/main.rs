@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path;
     let mut multiple = false;
     let threads = clap::value_t!(matches.value_of("threads"), u64).unwrap_or_else(|e| e.exit());
-    if let Some(_m) = matches.value_of("multiple") {
+    if let Some(_) = matches.value_of("multiple") {
         multiple = true;
     }
     if let Some(u) = matches.value_of("URL") {
