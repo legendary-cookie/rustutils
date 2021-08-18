@@ -107,7 +107,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let fname = format!("{}~{}", path, a);
                     let mut local_file = std::fs::File::open(fname);
                     let reader = BufReader::new(local_file);
-                    reader;
                 }
                 a += 1;
             }
