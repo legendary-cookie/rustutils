@@ -17,6 +17,7 @@ pub async fn download_range(
     path: &str,
     range: DownloadRange,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    //    println!("Starting download: {:?}", std::thread::current().id());
     let client = &factory::build_client()?;
 
     let res = client
@@ -39,6 +40,6 @@ pub async fn download_range(
         file.write(&chunk)
             .map_err(|_| "Error while writing to file".to_string())?;
     }
-
+    //    println!("Finished download: {:?}", std::thread::current().id());
     Ok(())
 }

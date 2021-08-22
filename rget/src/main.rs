@@ -4,6 +4,8 @@ extern crate utils;
 use std::cmp::min;
 use std::fs::File;
 use std::io::Write;
+use std::io;
+use std::io::{BufReader};
 
 use futures_util::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -99,18 +101,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .open(path)
                 .map_err(|_| format!("Failed to create file '{}'", path))?;
             let mut a = 1;
+            let time_begin = std::time::SystemTime::now();
             for t in threadmap.iter_mut() {
                 if let Some(handle) = t.take() {
                     handle.await.expect("Something wrent wrong in a task");
                     let fname = format!("{}~{}", path, a);
-                    let mut reader = my_reader::BufReader::open(fname.clone())?;
-                    let mut buffer = String::new();
-                    while let Some(line) = reader.read_line(&mut buffer) {
-                        f.write_all(line?.as_bytes())?;
-                    }
+                    let file = File::open(fname.clone())?;
+                    let mut reader = BufReader::new(file);
+                    io::copy(&mut reader, &mut f)?;
                     std::fs::remove_file(fname)?;
                 }
                 a += 1;
+            }
+            match time_begin.elapsed() {
+                Ok(elapsed) => {
+                    println!("Combining chunks took {} seconds", elapsed.as_secs());
+                }
+                Err(e) => {
+                    println!("Error: {:?}", e);
+                }
             }
             std::process::exit(0);
         } else {
@@ -142,34 +151,3 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-mod my_reader {
-    use std::{
-        fs::File,
-        io::{self, prelude::*},
-    };
-
-    pub struct BufReader {
-        reader: io::BufReader<File>,
-    }
-
-    impl BufReader {
-        pub fn open(path: impl AsRef<std::path::Path>) -> io::Result<Self> {
-            let file = File::open(path)?;
-            let reader = io::BufReader::new(file);
-
-            Ok(Self { reader })
-        }
-
-        pub fn read_line<'buf>(
-            &mut self,
-            buffer: &'buf mut String,
-        ) -> Option<io::Result<&'buf mut String>> {
-            buffer.clear();
-
-            self.reader
-                .read_line(buffer)
-                .map(|u| if u == 0 { None } else { Some(buffer) })
-                .transpose()
-        }
-    }
-}
