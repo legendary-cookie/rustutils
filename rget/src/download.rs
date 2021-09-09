@@ -3,7 +3,9 @@ extern crate reqwest;
 
 use crate::factory;
 use futures_util::StreamExt;
+use indicatif::{ProgressBar, ProgressStyle};
 use reqwest::header::RANGE;
+use std::cmp::min;
 use std::fs::OpenOptions;
 use std::io::{Seek, SeekFrom, Write};
 
@@ -12,12 +14,18 @@ pub struct DownloadRange {
     pub end: u64,
 }
 
+impl DownloadRange {
+    pub fn get_size(&self) -> u64 {
+        return self.end - self.start;
+    }
+}
+
 pub async fn download_range(
     url: &str,
     path: &str,
     range: DownloadRange,
+    bar: ProgressBar,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    //    println!("Starting download: {:?}", std::thread::current().id());
     let client = &factory::build_client()?;
     let res = client
         .get(url)
@@ -36,7 +44,6 @@ pub async fn download_range(
         .create(false)
         .append(false)
         .open(path)?;
-    //let mut file = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
     file.seek(SeekFrom::Start(range.start))?;
     let mut stream = res.bytes_stream();
     while let Some(item) = stream.next().await {
@@ -44,6 +51,5 @@ pub async fn download_range(
         file.write(&chunk)
             .map_err(|_| "Error while writing to file".to_string())?;
     }
-    //    println!("Finished download: {:?}", std::thread::current().id());
     Ok(())
 }

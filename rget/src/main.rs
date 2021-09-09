@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::Write;
 
 use futures_util::StreamExt;
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -60,6 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let headers = res.headers();
     let f = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
     f.set_len(total)?;
+    let mpb = MultiProgress::new();
     if threads > 1 {
         if headers.contains_key(reqwest::header::ACCEPT_RANGES) {
             let mut threadmap: Vec<Option<tokio::task::JoinHandle<()>>> = Vec::new();
@@ -68,6 +69,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut last = 0;
             while i < threads + 1 {
                 if i == 0 {
+                    // we dont want to do *0
                     i += 1
                 } else {
                     let range = utils::download::DownloadRange {
@@ -76,16 +78,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     };
                     let localpath = format!("{}", <&str>::clone(&path));
                     let localurl = <&str>::clone(&url).to_string();
-                    /*
-                    println!(
-                        "{} - {}",
-                        common::byteconvert::convert(last as f64),
-                        common::byteconvert::convert((single * i) as f64)
-                    );
-                    */
+                    let bar = ProgressBar::new(range.get_size());
+                    let localbar = bar.clone();
+                    mpb.add(bar);
+                    //println!("{} - {}",common::byteconvert::convert(last as f64),common::byteconvert::convert((single * i) as f64));
                     let handle = tokio::spawn(async move {
-                        // println!("CHUNK TO {}", localpath);
-                        utils::download::download_range(&localurl, &localpath, range)
+                        utils::download::download_range(&localurl, &localpath, range, localbar)
                             .await
                             .unwrap();
                     });
@@ -117,7 +115,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             std::process::exit(-1);
         }
     }
-    // Download for single threaded stuff
+    // Download for single threaded stuff / fallback
     let pb = ProgressBar::new(total);
     pb.set_style(ProgressStyle::default_bar()
         .template("{msg}\n{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")
