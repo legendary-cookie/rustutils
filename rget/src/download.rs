@@ -4,7 +4,7 @@ extern crate reqwest;
 use crate::factory;
 use futures_util::StreamExt;
 use reqwest::header::RANGE;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::{Seek, SeekFrom, Write};
 
 pub struct DownloadRange {
@@ -31,7 +31,12 @@ pub async fn download_range(
         std::process::exit(-1);
     }
     // Download
-    let mut file = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(false)
+        .append(false)
+        .open(path)?;
+    //let mut file = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
     file.seek(SeekFrom::Start(range.start))?;
     let mut stream = res.bytes_stream();
     while let Some(item) = stream.next().await {
