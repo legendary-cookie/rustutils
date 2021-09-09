@@ -1,10 +1,11 @@
 mod cli;
 extern crate utils;
 
-use std::cmp::min;
 use std::fs::File;
 use std::io::Write;
+use std::{cmp::min, path::Path};
 
+use filesize::PathExt;
 use futures_util::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 
