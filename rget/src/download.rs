@@ -14,7 +14,7 @@ pub struct DownloadRange {
 
 impl DownloadRange {
     pub fn get_size(&self) -> u64 {
-        return self.end - self.start;
+        self.end - self.start
     }
 }
 

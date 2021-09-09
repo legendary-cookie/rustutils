@@ -75,7 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         start: last,
                         end: single * i,
                     };
-                    let localpath = format!("{}", <&str>::clone(&path));
+                    let localpath = <&str>::clone(&path).to_string();
                     let localurl = <&str>::clone(&url).to_string();
                     //println!("{} - {}",common::byteconvert::convert(last as f64),common::byteconvert::convert((single * i) as f64));
                     let handle = tokio::spawn(async move {
