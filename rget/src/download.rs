@@ -4,7 +4,7 @@ extern crate reqwest;
 use crate::factory;
 use futures_util::StreamExt;
 use reqwest::header::RANGE;
-use std::fs::{File, OpenOptions};
+use std::fs::OpenOptions;
 use std::io::{Seek, SeekFrom, Write};
 
 pub struct DownloadRange {
