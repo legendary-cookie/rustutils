@@ -4,8 +4,6 @@ extern crate utils;
 use std::cmp::min;
 use std::fs::File;
 use std::io::Write;
-use std::io;
-use std::io::{BufReader};
 
 use futures_util::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -60,6 +58,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .ok_or(format!("Failed to get content length from {}", &url))?;
     println!("Total size: {}", common::byteconvert::convert(total as f64));
     let headers = res.headers();
+    let f = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
+    f.set_len(total)?;
     if threads > 1 {
         if headers.contains_key(reqwest::header::ACCEPT_RANGES) {
             let mut threadmap: Vec<Option<tokio::task::JoinHandle<()>>> = Vec::new();
@@ -74,7 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         start: last,
                         end: single * i,
                     };
-                    let localpath = format!("{}~{}", <&str>::clone(&path), i);
+                    let localpath = format!("{}", <&str>::clone(&path));
                     let localurl = <&str>::clone(&url).to_string();
                     /*
                     println!(
@@ -94,28 +94,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     i += 1;
                 }
             }
-            let mut f = std::fs::OpenOptions::new()
-                .write(true)
-                .append(true)
-                .create(true)
-                .open(path)
-                .map_err(|_| format!("Failed to create file '{}'", path))?;
-            let mut a = 1;
             let time_begin = std::time::SystemTime::now();
             for t in threadmap.iter_mut() {
                 if let Some(handle) = t.take() {
                     handle.await.expect("Something wrent wrong in a task");
-                    let fname = format!("{}~{}", path, a);
-                    let file = File::open(fname.clone())?;
-                    let mut reader = BufReader::new(file);
-                    io::copy(&mut reader, &mut f)?;
-                    std::fs::remove_file(fname)?;
                 }
-                a += 1;
             }
             match time_begin.elapsed() {
                 Ok(elapsed) => {
-                    println!("Combining chunks took {} seconds", elapsed.as_secs());
+                    println!("Downloading took {} seconds", elapsed.as_secs());
                 }
                 Err(e) => {
                     println!("Error: {:?}", e);
@@ -150,4 +137,3 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pb.finish_with_message(format!("Downloaded {} to {}", url, path));
     Ok(())
 }
-
