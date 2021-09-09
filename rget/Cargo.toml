@@ -21,7 +21,6 @@ indicatif = "0.16.2"
 reqwest = { version = "0.11", features = ["stream"] }
 tokio = { version = "1", features = ["full"] }
 common = { path = "../common" }
-filesize = "0.2.0"
 
 [dependencies.clap]
 version = "2.3.3"

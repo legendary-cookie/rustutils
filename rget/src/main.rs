@@ -3,9 +3,8 @@ extern crate utils;
 
 use std::fs::File;
 use std::io::Write;
-use std::{cmp::min, path::Path};
+use std::{cmp::min};
 
-use filesize::PathExt;
 use futures_util::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 
