@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::Write;
 
 use futures_util::StreamExt;
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use indicatif::{ProgressBar, ProgressStyle};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -60,7 +60,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let headers = res.headers();
     let f = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
     f.set_len(total)?;
-    let mpb = MultiProgress::new();
     if threads > 1 {
         if headers.contains_key(reqwest::header::ACCEPT_RANGES) {
             let mut threadmap: Vec<Option<tokio::task::JoinHandle<()>>> = Vec::new();
@@ -78,12 +77,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     };
                     let localpath = format!("{}", <&str>::clone(&path));
                     let localurl = <&str>::clone(&url).to_string();
-                    let bar = ProgressBar::new(range.get_size());
-                    let localbar = bar.clone();
-                    mpb.add(bar);
                     //println!("{} - {}",common::byteconvert::convert(last as f64),common::byteconvert::convert((single * i) as f64));
                     let handle = tokio::spawn(async move {
-                        utils::download::download_range(&localurl, &localpath, range, localbar)
+                        utils::download::download_range(&localurl, &localpath, range)
                             .await
                             .unwrap();
                     });
@@ -109,10 +105,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             std::process::exit(0);
         } else {
             println!(
-                "The server doesn't support ranges. 
-            Specify only one thread to download from here."
+                "WARNING: The server doesn't support ranges. 
+                We will download with a single thread to support this server."
             );
-            std::process::exit(-1);
         }
     }
     // Download for single threaded stuff / fallback

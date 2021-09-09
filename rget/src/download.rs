@@ -3,9 +3,7 @@ extern crate reqwest;
 
 use crate::factory;
 use futures_util::StreamExt;
-use indicatif::{ProgressBar, ProgressStyle};
 use reqwest::header::RANGE;
-use std::cmp::min;
 use std::fs::OpenOptions;
 use std::io::{Seek, SeekFrom, Write};
 
@@ -24,7 +22,6 @@ pub async fn download_range(
     url: &str,
     path: &str,
     range: DownloadRange,
-    bar: ProgressBar,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let client = &factory::build_client()?;
     let res = client
