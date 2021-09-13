@@ -123,7 +123,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     // Download for single threaded stuff / fallback
     let pb = ProgressBar::new(total);
-    if (progb) {
+    if progb {
         pb.set_style(ProgressStyle::default_bar()
         .template("{msg}\n{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")
         .progress_chars("#>-"));
@@ -136,13 +136,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let chunk = item.map_err(|_| "Error while downloading file".to_string())?;
         file.write(&chunk)
             .map_err(|_| "Error while writing to file".to_string())?;
-        if (progb) {
+        if progb {
             let new = min(downloaded + (chunk.len() as u64), total);
             downloaded = new;
             pb.set_position(new);
         }
     }
-    if (progb) {
+    if progb {
         pb.finish_with_message(format!("Downloaded {} to {}", url, path));
     }
     Ok(())
