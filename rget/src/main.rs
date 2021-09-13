@@ -4,7 +4,6 @@ extern crate utils;
 use std::cmp::min;
 use std::fs::File;
 use std::io::Write;
-
 use futures_util::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 
@@ -34,7 +33,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::process::exit(-1);
     }
     if let Some(p) = matches.value_of("PATH") {
-        path = p;
+        if !std::path::Path::new(p).is_dir() {
+            path = p;
+        } else {
+            let split = url.split('/');
+            let vec: Vec<&str> = split.collect();
+            let tpath = vec[vec.len() - 1];
+            std::env::set_current_dir(p)?;
+            path = tpath; 
+        }
     } else {
         // Use the filename from the url
         // e.g: http://www.africau.edu/images/default/sample.pdf will turn into sample.pdf
