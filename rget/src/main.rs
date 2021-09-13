@@ -1,11 +1,11 @@
 mod cli;
 extern crate utils;
 
+use futures_util::StreamExt;
+use indicatif::{ProgressBar, ProgressStyle};
 use std::cmp::min;
 use std::fs::File;
 use std::io::Write;
-use futures_util::StreamExt;
-use indicatif::{ProgressBar, ProgressStyle};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -13,10 +13,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = cli::build_cli().get_matches();
     let url;
     let path;
+    let mut progb = true;
     let mut multiple = false;
     let threads = clap::value_t!(matches.value_of("threads"), u64).unwrap_or_else(|e| e.exit());
     if matches.value_of("multiple").is_some() {
         multiple = true;
+    }
+    if matches.is_present("noprog") {
+        progb = false;
     }
     if let Some(u) = matches.value_of("URL") {
         if multiple {
@@ -40,7 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let vec: Vec<&str> = split.collect();
             let tpath = vec[vec.len() - 1];
             std::env::set_current_dir(p)?;
-            path = tpath; 
+            path = tpath;
         }
     } else {
         // Use the filename from the url
@@ -119,10 +123,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     // Download for single threaded stuff / fallback
     let pb = ProgressBar::new(total);
-    pb.set_style(ProgressStyle::default_bar()
+    if (progb) {
+        pb.set_style(ProgressStyle::default_bar()
         .template("{msg}\n{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")
         .progress_chars("#>-"));
-    pb.set_message(format!("Downloading {}", url));
+        pb.set_message(format!("Downloading {}", url));
+    }
     let mut file = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
@@ -130,10 +136,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let chunk = item.map_err(|_| "Error while downloading file".to_string())?;
         file.write(&chunk)
             .map_err(|_| "Error while writing to file".to_string())?;
-        let new = min(downloaded + (chunk.len() as u64), total);
-        downloaded = new;
-        pb.set_position(new);
+        if (progb) {
+            let new = min(downloaded + (chunk.len() as u64), total);
+            downloaded = new;
+            pb.set_position(new);
+        }
     }
-    pb.finish_with_message(format!("Downloaded {} to {}", url, path));
+    if (progb) {
+        pb.finish_with_message(format!("Downloaded {} to {}", url, path));
+    }
     Ok(())
 }

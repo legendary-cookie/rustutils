@@ -21,6 +21,13 @@ pub fn build_cli() -> App<'static, 'static> {
                 .long("threads"),
         )
         .arg(
+            Arg::with_name("noprog")
+                .help("Disable progress bar")
+                .required(false)
+                .short("p")
+                .long("noprog"),
+        )
+        .arg(
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
