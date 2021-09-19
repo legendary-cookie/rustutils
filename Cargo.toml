@@ -1,5 +1,5 @@
 [workspace]
-members = ["rget", "common"]
+members = ["rget", "rail", "common"]
 
 [profile.release]
 codegen-units = 1
