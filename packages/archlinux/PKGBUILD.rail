@@ -1,5 +1,5 @@
 pkgname=rail-git
-pkgver=r79.dc9f9dc
+pkgver=r80.6d1eca0
 pkgrel=1
 pkgdesc="Tail implementation in rust"
 arch=(x86_64)
@@ -30,5 +30,5 @@ build() {
 
 
 package() {
-    install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
+    install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/${pkgname%-git}"
 }
