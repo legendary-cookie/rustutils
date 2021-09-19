@@ -1,0 +1,34 @@
+pkgname=rail-git
+pkgver=r79.dc9f9dc
+pkgrel=1
+pkgdesc="Tail implementation in rust"
+arch=(x86_64)
+license=('GPL')
+makedepends=(git)
+provides=("${pkgname%-git}")
+conflicts=("${pkgname%-git}")
+source=('rail::git+https://github.com/legendary-cookie/rustutils')
+md5sums=('SKIP')
+
+
+pkgver() {
+	cd "$srcdir/${pkgname%-git}"
+# Git, no tags available
+	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+    cargo update
+    cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+    export RUSTUP_TOOLCHAIN=stable
+    export CARGO_TARGET_DIR=target
+    cargo build -p ${pkgname%-git} --frozen --release --all-features
+}
+
+
+package() {
+    install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
+}
