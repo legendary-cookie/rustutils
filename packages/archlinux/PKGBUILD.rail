@@ -7,7 +7,7 @@ license=('GPL')
 makedepends=(git)
 provides=("${pkgname%-git}")
 conflicts=("${pkgname%-git}")
-source=('rail::git+https://github.com/legendary-cookie/rustutils')
+source=("${pkgname%-git}::git+https://github.com/legendary-cookie/rustutils")
 md5sums=('SKIP')
 
 
