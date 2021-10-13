@@ -1,6 +1,6 @@
 [package]
 name = "rget"
-version = "1.0.2"
+version = "1.1.0"
 authors = ["legendary-cookie <github.com@xolley.de>"]
 edition = "2018"
 build = "build.rs"
