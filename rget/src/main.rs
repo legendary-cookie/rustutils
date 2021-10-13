@@ -1,14 +1,18 @@
 mod cli;
 extern crate utils;
 
+use crossterm::execute;
 use futures_util::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
+use pbr::MultiBar;
 use std::cmp::min;
 use std::fs::File;
 use std::io::Write;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Hide cursor
+    execute!(std::io::stdout(), crossterm::cursor::Hide)?;
     /* ARG PARSING */
     let matches = cli::build_cli().get_matches();
     let url;
@@ -31,9 +35,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             url = u;
         } else {
             println!("You have to supply an url starting with either http:// or https://");
+            cleanup(-1);
             std::process::exit(-1);
         }
     } else {
+        cleanup(-1);
         std::process::exit(-1);
     }
     if let Some(p) = matches.value_of("PATH") {
@@ -62,6 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map_err(|_| format!("Failed to GET from '{}'", &url))?;
     if res.status() != 200 && res.status() != 206 {
         println!("Got Status {}", res.status());
+        cleanup(-1);
         std::process::exit(-1);
     }
     let total = res
@@ -73,6 +80,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     f.set_len(total)?;
     if threads > 1 {
         if headers.contains_key(reqwest::header::ACCEPT_RANGES) {
+            let mb = MultiBar::new();
             let mut threadmap: Vec<Option<tokio::task::JoinHandle<()>>> = Vec::new();
             let single = total / threads;
             let mut i = 0;
@@ -89,8 +97,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let localpath = <&str>::clone(&path).to_string();
                     let localurl = <&str>::clone(&url).to_string();
                     //println!("{} - {}",common::byteconvert::convert(last as f64),common::byteconvert::convert((single * i) as f64));
+                    let p = mb.create_bar(single);
                     let handle = tokio::spawn(async move {
-                        utils::download::download_range(&localurl, &localpath, range)
+                        utils::download::download_range(&localurl, &localpath, range, p)
                             .await
                             .unwrap();
                     });
@@ -100,6 +109,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
             let time_begin = std::time::SystemTime::now();
+            mb.listen();
             for t in threadmap.iter_mut() {
                 if let Some(handle) = t.take() {
                     handle.await.expect("Something wrent wrong in a task");
@@ -113,6 +123,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("Error: {:?}", e);
                 }
             }
+            cleanup(-1);
             std::process::exit(0);
         } else {
             println!(
@@ -146,4 +157,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         pb.finish_with_message(format!("Downloaded {} to {}", url, path));
     }
     Ok(())
+}
+
+fn cleanup(ret: i32) {
+    execute!(std::io::stdout(), crossterm::cursor::Show).unwrap();
+    std::process::exit(ret)
 }
