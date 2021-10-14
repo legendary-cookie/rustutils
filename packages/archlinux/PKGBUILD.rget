@@ -1,5 +1,5 @@
 pkgname=rget-git
-pkgver=r84.5587ca6
+pkgver=r92.08646f1
 pkgrel=1
 pkgdesc="Wget alternative"
 arch=(x86_64)

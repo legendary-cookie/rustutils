@@ -1,5 +1,5 @@
 pkgname=rail-git
-pkgver=r83.b592ab9
+pkgver=r92.08646f1
 pkgrel=1
 pkgdesc="Tail implementation in rust"
 arch=(x86_64)

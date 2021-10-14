@@ -1,3 +1,5 @@
+#![feature(never_type)]
+
 mod cli;
 extern crate utils;
 
@@ -7,7 +9,14 @@ use std::fs::File;
 use utils::download::download;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() {
+    match run().await {
+        Ok(_) => cleanup(0),
+        Err(_) => {cleanup(-1)}
+    }
+}
+
+async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // Hide cursor
     execute!(std::io::stdout(), crossterm::cursor::Hide)?;
     /* ARG PARSING */
@@ -119,7 +128,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     // Download for single threaded stuff / fallback
     download(path, progb, total, res).await?;
-    cleanup(0);
+    Ok(())
 }
 
 fn cleanup(ret: i32) -> ! {
