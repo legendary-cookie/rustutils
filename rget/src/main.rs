@@ -2,12 +2,9 @@ mod cli;
 extern crate utils;
 
 use crossterm::execute;
-use futures_util::StreamExt;
-use indicatif::{ProgressBar, ProgressStyle};
 use pbr::MultiBar;
-use std::cmp::min;
 use std::fs::File;
-use std::io::Write;
+use utils::download::download;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -123,8 +120,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("Error: {:?}", e);
                 }
             }
-            cleanup(-1);
-            std::process::exit(0);
+            cleanup(0);
         } else {
             println!(
                 "WARNING: The server doesn't support ranges. 
@@ -133,29 +129,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     // Download for single threaded stuff / fallback
-    let pb = ProgressBar::new(total);
-    if progb {
-        pb.set_style(ProgressStyle::default_bar()
-        .template("{msg}\n{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")
-        .progress_chars("#>-"));
-        pb.set_message(format!("Downloading {}", url));
-    }
-    let mut file = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
-    let mut downloaded: u64 = 0;
-    let mut stream = res.bytes_stream();
-    while let Some(item) = stream.next().await {
-        let chunk = item.map_err(|_| "Error while downloading file".to_string())?;
-        file.write(&chunk)
-            .map_err(|_| "Error while writing to file".to_string())?;
-        if progb {
-            let new = min(downloaded + (chunk.len() as u64), total);
-            downloaded = new;
-            pb.set_position(new);
-        }
-    }
-    if progb {
-        pb.finish_with_message(format!("Downloaded {} to {}", url, path));
-    }
+    download(path, progb, total, res).await?;
+    cleanup(0);
+    Ok(())
+}
+
+
+async fn run_for_url(url: &str) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 

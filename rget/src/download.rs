@@ -1,4 +1,3 @@
-extern crate indicatif;
 extern crate reqwest;
 
 use crate::factory;
@@ -59,5 +58,41 @@ pub async fn download_range(
         pbar.set(new);
     }
     pbar.finish();
+    Ok(())
+}
+
+
+pub async fn download_from_url(url: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let client = factory::build_client()?;
+    let res = client.get(url).send().await?;
+    let mut file = std::fs::File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
+    let mut stream = res.bytes_stream();
+    while let Some(item) = stream.next().await {
+        let chunk = item.map_err(|_| "Error while downloading file".to_string())?;
+        file.write(&chunk)
+            .map_err(|_| "Error while writing to file".to_string())?;
+    }
+    Ok(())
+}
+
+pub async fn download(path: &str, progb: bool, total: u64, res: reqwest::Response) -> Result<(), Box<dyn std::error::Error>> {
+    let mut pb = ProgressBar::new(total);
+    pb.set_units(Units::Bytes);
+    let mut file = std::fs::File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
+    let mut downloaded: u64 = 0;
+    let mut stream = res.bytes_stream();
+    while let Some(item) = stream.next().await {
+        let chunk = item.map_err(|_| "Error while downloading file".to_string())?;
+        file.write(&chunk)
+            .map_err(|_| "Error while writing to file".to_string())?;
+        if progb {
+            let new = min(downloaded + (chunk.len() as u64), total);
+            downloaded = new;
+            pb.set(new);
+        }
+    }
+    if progb {
+        pb.finish_print("Finished with downloading!");
+    }
     Ok(())
 }
