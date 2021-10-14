@@ -74,7 +74,7 @@ fn tail_stdin(count: u64) {
 
 const BUF_SIZE: usize = 1024;
 
-fn tail_file(path: &String, count: u64, fflag: bool) {
+fn tail_file(path: &str, count: u64, fflag: bool) {
     //let file = match File::open(path){
     let file = match OpenOptions::new().read(true).open(path) {
         Err(err) => panic!("Cannot open file! file:{} cause:{}", path, err),
@@ -122,7 +122,7 @@ fn tail_file(path: &String, count: u64, fflag: bool) {
             }
             current_pos -= 1;
             //println!("{}", current_pos);
-            if current_pos <= 0 {
+            if current_pos == 0 {
                 current_pos = 0;
                 break 'outer;
             }
@@ -152,7 +152,7 @@ fn tail_file(path: &String, count: u64, fflag: bool) {
     print_result(buf_str);
     if fflag {
         if cfg!(target_os = "windows") {
-            println!("");
+            println!();
         }
         if let Err(err) = tail_file_follow(&mut reader, path, f_size) {
             panic!(
@@ -166,7 +166,7 @@ fn tail_file(path: &String, count: u64, fflag: bool) {
 
 fn tail_file_follow(
     reader: &mut BufReader<File>,
-    spath: &String,
+    spath: &str,
     file_size: u64,
 ) -> notify::Result<()> {
     let (tx, rx) = channel();
