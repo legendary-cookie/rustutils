@@ -12,7 +12,10 @@ use utils::download::download;
 async fn main() {
     match run().await {
         Ok(_) => cleanup(0),
-        Err(_) => {cleanup(-1)}
+        Err(err) => {
+            println!("{}", err);
+            cleanup(-1)
+        }
     }
 }
 
@@ -33,10 +36,10 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
             url = u;
         } else {
             println!("You have to supply an url starting with either http:// or https://");
-            cleanup(-1);
+            return Ok(());
         }
     } else {
-        cleanup(-1);
+        return Ok(());
     }
     if let Some(p) = matches.value_of("PATH") {
         if !std::path::Path::new(p).is_dir() {
@@ -64,7 +67,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .map_err(|_| format!("Failed to GET from '{}'", &url))?;
     if res.status() != 200 && res.status() != 206 {
         println!("Got Status {}", res.status());
-        cleanup(-1);
+        return Ok(());
     }
     let total = res
         .content_length()
@@ -118,7 +121,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
                     println!("Error: {:?}", e);
                 }
             }
-            cleanup(0);
+            return Ok(());
         } else {
             println!(
                 "WARNING: The server doesn't support ranges. 
