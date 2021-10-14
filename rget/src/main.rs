@@ -71,7 +71,8 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
     let total = res
         .content_length()
-        .ok_or(format!("Failed to get content length from {}", &url))?;
+        .ok_or(format!(r#"Failed to get content length from {}
+Headers: {:#?}"#, &url, res.headers()))?;
     println!("Total size: {}", common::byteconvert::convert(total as f64));
     let headers = res.headers();
     let f = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
