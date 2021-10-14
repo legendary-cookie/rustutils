@@ -5,13 +5,6 @@ pub fn build_cli() -> App<'static, 'static> {
         .version(env!("CARGO_PKG_VERSION"))
         .author("legendary-cookie <github.com@xolley.de>")
         .arg(
-            Arg::with_name("multiple")
-                .help("Enable downloading a list of urls")
-                .required(false)
-                .short("m")
-                .long("multiple"),
-        )
-        .arg(
             Arg::with_name("threads")
                 .help("How many threads to use")
                 .required(false)

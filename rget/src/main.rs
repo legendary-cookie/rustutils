@@ -15,29 +15,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let url;
     let path;
     let mut progb = true;
-    let mut multiple = false;
     let threads = clap::value_t!(matches.value_of("threads"), u64).unwrap_or_else(|e| e.exit());
-    if matches.value_of("multiple").is_some() {
-        multiple = true;
-    }
     if matches.is_present("noprog") {
         progb = false;
     }
     if let Some(u) = matches.value_of("URL") {
-        if multiple {
-            let _urls = u.split(',');
-            // TODO: implement multiple urls
-            std::process::exit(-1);
-        } else if u.starts_with("http://") || u.starts_with("https://") {
+        if u.starts_with("http://") || u.starts_with("https://") {
             url = u;
         } else {
             println!("You have to supply an url starting with either http:// or https://");
             cleanup(-1);
-            std::process::exit(-1);
         }
     } else {
         cleanup(-1);
-        std::process::exit(-1);
     }
     if let Some(p) = matches.value_of("PATH") {
         if !std::path::Path::new(p).is_dir() {
@@ -66,7 +56,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if res.status() != 200 && res.status() != 206 {
         println!("Got Status {}", res.status());
         cleanup(-1);
-        std::process::exit(-1);
     }
     let total = res
         .content_length()
@@ -131,15 +120,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Download for single threaded stuff / fallback
     download(path, progb, total, res).await?;
     cleanup(0);
-    Ok(())
 }
 
-
-async fn run_for_url(url: &str) -> Result<(), Box<dyn std::error::Error>> {
-    Ok(())
-}
-
-fn cleanup(ret: i32) {
+fn cleanup(ret: i32) -> ! {
     execute!(std::io::stdout(), crossterm::cursor::Show).unwrap();
     std::process::exit(ret)
 }
