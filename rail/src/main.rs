@@ -16,7 +16,7 @@ fn main() {
     options.optflag("f", "-follow", "output appended data as the file grows");
     options.optflag("h", "", "print help");
     let cmd_args = match options.parse(&args[1..]) {
-        Err(why) => panic!("Cannot parse command args :{}", why),
+        Err(err) => panic!("Cannot parse command args :{}", err),
         Ok(p) => p,
     };
     if cmd_args.opt_present("h") {
@@ -54,7 +54,7 @@ fn tail_stdin(count: u64) {
     let mut line_strs: Vec<String> = Vec::new();
     for line in stdin.lock().lines() {
         line_strs.push(match line {
-            Err(why) => panic!("Cannot read strin! cause:{}", why),
+            Err(err) => panic!("Cannot read stdin! cause:{}", err),
             Ok(l) => l,
         });
     }
@@ -77,11 +77,11 @@ const BUF_SIZE: usize = 1024;
 fn tail_file(path: &String, count: u64, fflag: bool) {
     //let file = match File::open(path){
     let file = match OpenOptions::new().read(true).open(path) {
-        Err(why) => panic!("Cannot open file! file:{} cause:{}", path, why),
+        Err(err) => panic!("Cannot open file! file:{} cause:{}", path, err),
         Ok(file) => file,
     };
     let f_metadata = match file.metadata() {
-        Err(why) => panic!("Cannot read file metadata :{}", why),
+        Err(err) => panic!("Cannot read file metadata :{}", err),
         Ok(data) => data,
     };
     let f_size = f_metadata.len();
@@ -102,13 +102,13 @@ fn tail_file(path: &String, count: u64, fflag: bool) {
     let mut buf = [0; BUF_SIZE];
     'outer: loop {
         match reader.seek(SeekFrom::Start(read_start)) {
-            Err(why) => panic!("Cannot move offset! offset:{} cause:{}", current_pos, why),
+            Err(err) => panic!("Cannot move offset! offset:{} cause:{}", current_pos, err),
             Ok(_) => current_pos,
         };
         let b = match reader.read(&mut buf) {
-            Err(why) => panic!(
+            Err(err) => panic!(
                 "Cannot read offset byte! offset:{} cause:{}",
-                current_pos, why
+                current_pos, err
             ),
             Ok(b) => b,
         };
@@ -135,17 +135,17 @@ fn tail_file(path: &String, count: u64, fflag: bool) {
     }
     //println!("last pos :{}", current_pos);
     match reader.seek(SeekFrom::Start(current_pos)) {
-        Err(why) => panic!(
+        Err(err) => panic!(
             "Cannot read offset byte! offset:{} cause:{}",
-            current_pos, why
+            current_pos, err
         ),
         Ok(_) => current_pos,
     };
     let mut buf_str = String::new();
     match reader.read_to_string(&mut buf_str) {
-        Err(why) => panic!(
+        Err(err) => panic!(
             "Cannot read offset byte! offset:{} cause:{}",
-            current_pos, why
+            current_pos, err
         ),
         Ok(_) => current_pos,
     };
@@ -154,11 +154,11 @@ fn tail_file(path: &String, count: u64, fflag: bool) {
         if cfg!(target_os = "windows") {
             println!("");
         }
-        if let Err(why) = tail_file_follow(&mut reader, path, f_size) {
+        if let Err(err) = tail_file_follow(&mut reader, path, f_size) {
             panic!(
                 "Cannot follow file! file:{:?} cause:{}",
                 reader.by_ref(),
-                why
+                err
             )
         }
     }
@@ -180,13 +180,13 @@ fn tail_file_follow(
             Err(e) => println!("watch error: {:?}", e),
             Ok(_) => {
                 match reader.seek(SeekFrom::Start(start_byte)) {
-                    Err(why) => panic!("Cannot move offset! offset:{} cause:{}", start_byte, why),
+                    Err(err) => panic!("Cannot move offset! offset:{} cause:{}", start_byte, err),
                     Ok(_) => start_byte,
                 };
                 let read_byte = match reader.read_to_string(&mut buf_str) {
-                    Err(why) => panic!(
+                    Err(err) => panic!(
                         "Cannot read offset byte! offset:{} cause:{}",
-                        start_byte, why
+                        start_byte, err
                     ),
                     Ok(b) => b,
                 };
