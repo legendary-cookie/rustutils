@@ -91,7 +91,7 @@ pub async fn download(
         let chunk = item.map_err(|_| "Error while downloading file".to_string())?;
         file.write(&chunk)
             .map_err(|_| "Error while writing to file".to_string())?;
-        if progb {
+        if progb && total >= 1000000 {
             let new = min(downloaded + (chunk.len() as u64), total);
             downloaded = new;
             pb.set(new);

@@ -7,6 +7,7 @@ use crossterm::execute;
 use pbr::MultiBar;
 use std::fs::File;
 use utils::download::download;
+use colored::*;
 
 #[tokio::main]
 async fn main() {
@@ -20,8 +21,6 @@ async fn main() {
 }
 
 async fn run() -> Result<(), Box<dyn std::error::Error>> {
-    // Hide cursor
-    execute!(std::io::stdout(), crossterm::cursor::Hide)?;
     /* ARG PARSING */
     let matches = cli::build_cli().get_matches();
     let url;
@@ -59,6 +58,8 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         path = vec[vec.len() - 1];
     }
     /* REST OF THE STUFF */
+    // Hide cursor
+    execute!(std::io::stdout(), crossterm::cursor::Hide)?;
     let client = &utils::factory::build_client()?;
     let res = client
         .get(url)
@@ -66,7 +67,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .map_err(|_| format!("Failed to GET from '{}'", &url))?;
     if res.status() != 200 && res.status() != 206 {
-        println!("Got Status {}", res.status());
+        println!("{} {}", "Got Status".red(), res.status());
         return Ok(());
     }
     let total = res
@@ -86,7 +87,7 @@ Headers: {:#?}"#, &url, res.headers()))?;
             let mut last = 0;
             while i < threads + 1 {
                 if i == 0 {
-                    // we dont want to do *0
+                    // we dont want to do *0, so we start at 1
                     i += 1
                 } else {
                     let range = utils::download::DownloadRange {
@@ -124,9 +125,9 @@ Headers: {:#?}"#, &url, res.headers()))?;
             }
             return Ok(());
         } else {
-            println!(
-                "WARNING: The server doesn't support ranges. 
-                We will download with a single thread to support this server."
+            println!("{}: {}",
+                "WARNING".yellow().bold(), 
+                "The server doesn't support ranges. We will download with a single thread to support this server."
             );
         }
     }
