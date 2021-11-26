@@ -1,5 +1,5 @@
 pkgname=rget-git
-pkgver=r96.318901a
+pkgver=r99.755ffa4
 pkgrel=1
 pkgdesc="Wget alternative"
 arch=(x86_64)
@@ -22,7 +22,7 @@ prepare() {
 }
 
 build() {
-    export RUSTUP_TOOLCHAIN=stable
+    export RUSTUP_TOOLCHAIN=nightly
     export CARGO_TARGET_DIR=target
     cargo build -p ${pkgname%-git} --frozen --release --all-features
 }
