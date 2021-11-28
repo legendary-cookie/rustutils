@@ -62,26 +62,6 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    /*
-    if let Some(p) = matches.value_of("PATH") {
-        if !std::path::Path::new(p).is_dir() {
-            path = p;
-        } else {
-            let split = url.split('/');
-            let vec: Vec<&str> = split.collect();
-            let tpath = vec[vec.len() - 1];
-            std::env::set_current_dir(p)?;
-            path = tpath;
-        }
-    } else {
-        // Use the filename from the url
-        // e.g: http://www.africau.edu/images/default/sample.pdf will turn into sample.pdf
-        let split = url.split('/');
-        let vec: Vec<&str> = split.collect();
-        path = vec[vec.len() - 1];
-    }
-    */
-
     /* REST OF THE STUFF */
     // Hide cursor
     execute!(std::io::stdout(), crossterm::cursor::Hide)?;
@@ -99,7 +79,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(i) = res.content_length() {
         total = i;
     } else {
-        println!("{} {}","This server didn't send us the content length! We'll try to download without it!".white(), "WARNING".yellow().bold());
+        println!("{} {}","WARNING".yellow().bold(), "This server didn't send us the content length! We'll try to download without it!".white());
         utils::download::download_from_url(url, path).await?;
         cleanup(0);
     }
