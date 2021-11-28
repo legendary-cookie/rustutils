@@ -1,5 +1,6 @@
 use std::cmp;
 
+/// Convert an arbitrary number of bytes to a String
 pub fn convert(num: f64) -> String {
     let negative = if num.is_sign_positive() { "" } else { "-" };
     let num = num.abs();

@@ -8,6 +8,7 @@ use std::cmp::min;
 use std::fs::OpenOptions;
 use std::io::{Seek, SeekFrom, Write};
 
+/// Simple struct holding two values: start and end, both are just numbers representing bytes
 pub struct DownloadRange {
     pub start: u64,
     pub end: u64,
@@ -19,6 +20,7 @@ impl DownloadRange {
     }
 }
 
+/// Download a range, used for multithreaded downloading
 pub async fn download_range(
     url: &str,
     path: &str,
@@ -66,6 +68,7 @@ pub async fn download_range(
     Ok(())
 }
 
+/// Just download from url, no progressbar, no ranges, nothing.
 pub async fn download_from_url(url: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let client = factory::build_client()?;
     let res = client.get(url).send().await?;
@@ -80,6 +83,7 @@ pub async fn download_from_url(url: &str, path: &str) -> Result<(), Box<dyn std:
     Ok(())
 }
 
+/// Download with progressbar, no ranges.
 pub async fn download(
     path: &str,
     progb: bool,

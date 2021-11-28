@@ -11,6 +11,15 @@ use utils::download::download;
 
 #[tokio::main]
 async fn main() {
+
+    // We want to cleanup our cursor if we get interrupted
+    ctrlc::set_handler(move || {
+        println!("\nReceived Ctrl+C ...");
+        cleanup(0);
+    })
+    .expect("Error setting Ctrl-C handler");
+
+
     match run().await {
         Ok(_) => cleanup(0),
         Err(err) => {
@@ -158,6 +167,7 @@ Headers: {:#?}"#,
     Ok(())
 }
 
+/// Cleanup cursor and return with exit code
 fn cleanup(ret: i32) -> ! {
     execute!(std::io::stdout(), crossterm::cursor::Show).unwrap();
     std::process::exit(ret)
