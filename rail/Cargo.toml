@@ -2,6 +2,7 @@
 name = "rail"
 version = "0.1.1"
 edition = "2018"
+license = "MIT"
 
 [dependencies]
 getopts = "0.2.17"
