@@ -2,9 +2,25 @@ on: [push]
 name: CI
 
 jobs:
-  build:
-    name: Rustutil
+  check-for-changes:
     runs-on: ubuntu-latest
+    outputs:
+      server: ${{ steps.filter.outputs.code }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          code:
+            - '**.rs'
+            - '**.c'
+
+  build:
+    name: Build
+    needs: check-for-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-for-changes.outputs.code == 'true' }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
