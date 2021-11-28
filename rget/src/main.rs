@@ -95,12 +95,15 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         println!("{} {}", "Got Status".red(), res.status());
         return Ok(());
     }
-    let total = res.content_length().ok_or(format!(
-        r#"Failed to get content length from {}
-Headers: {:#?}"#,
-        &url,
-        res.headers()
-    ))?;
+    let total;
+    if let Some(i) = res.content_length() {
+        total = i;
+    } else {
+        println!("{} {}","This server didn't send us the content length! We'll try to download without it!".white(), "WARNING".yellow().bold());
+        utils::download::download_from_url(url, path).await?;
+        cleanup(0);
+    }
+        //.ok_or(format!("Failed to get content length from {}", &url))?;
     println!("Total size: {}", common::byteconvert::convert(total as f64));
     let headers = res.headers();
     let f = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
@@ -123,7 +126,7 @@ Headers: {:#?}"#,
                     };
                     let localpath = <&str>::clone(&path).to_string();
                     let localurl = <&str>::clone(&url).to_string();
-                    //println!("{} - {}",common::byteconvert::convert(last as f64),common::byteconvert::convert((single * i) as f64));
+                    //DEBUG: println!("{} - {}",common::byteconvert::convert(last as f64),common::byteconvert::convert((single * i) as f64));
                     let p = mb.create_bar(single);
                     let handle = tokio::spawn(async move {
                         utils::download::download_range(&localurl, &localpath, range, p, progb)
