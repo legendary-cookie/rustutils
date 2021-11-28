@@ -40,7 +40,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         if u.starts_with("http://") || u.starts_with("https://") {
             url = u;
         } else {
-            println!("You have to supply an url starting with either http:// or https://");
+            println!("{} you have to supply an url starting with either http:// or https://", "ERROR: ".red().bold());
             return Ok(());
         }
     } else {
