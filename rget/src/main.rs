@@ -24,7 +24,6 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     /* ARG PARSING */
     let matches = cli::build_cli().get_matches();
     let url;
-    let path;
     let mut progb = true;
     let threads = clap::value_t!(matches.value_of("threads"), u64).unwrap_or_else(|e| e.exit());
     if matches.is_present("noprog") {
@@ -40,6 +39,24 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         return Ok(());
     }
+
+	let mut path = matches.value_of("output").unwrap();
+	if path == "" {
+		let split = url.split('/');
+		let vec: Vec<&str> = split.collect();
+		path = vec[vec.len() - 1];
+	} else {
+		if std::path::Path::new(path).is_dir() {
+			let split = url.split('/');
+			let vec: Vec<&str> = split.collect();
+			let tpath = vec[vec.len() - 1];
+			std::env::set_current_dir(path)?;
+			path = tpath;
+		} 
+	}
+	
+
+	/*
     if let Some(p) = matches.value_of("PATH") {
         if !std::path::Path::new(p).is_dir() {
             path = p;
@@ -57,6 +74,8 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         let vec: Vec<&str> = split.collect();
         path = vec[vec.len() - 1];
     }
+    */
+    
     /* REST OF THE STUFF */
     // Hide cursor
     execute!(std::io::stdout(), crossterm::cursor::Hide)?;
