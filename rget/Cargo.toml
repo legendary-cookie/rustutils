@@ -1,11 +1,9 @@
 [package]
 name = "rget"
-version = "1.1.1"
+version = "1.1.2"
 authors = ["legendary-cookie <github.com@xolley.de>"]
 edition = "2018"
 build = "build.rs"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 name = "utils"
@@ -28,8 +26,5 @@ colored = "2"
 version = "2.33.3"
 features = ["suggestions", "color" ]
 
-
 [build-dependencies]
 clap = "2.3.3"
-
-

@@ -2,6 +2,18 @@
 members = ["rget", "rail", "common"]
 
 [profile.release]
-codegen-units = 1
+opt-level = 3
+debug = 0
 panic = "abort"
 lto = true
+debug-assertions = false
+overflow-checks = true
+incremental = false
+
+[profile.dev]
+opt-level = 0
+overflow-checks = false
+debug = 2
+lto = false
+debug-assertions = true
+incremental = true
