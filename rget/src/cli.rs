@@ -27,13 +27,13 @@ pub fn build_cli() -> App<'static, 'static> {
                 .help("Sets the level of verbosity"),
         )
         .arg(
-        	Arg::with_name("output")
-        		.short("O")
-        		.long("output")
-        		.multiple(false)
-        		.help("Output file's path")
-        		.takes_value(true)
-        		.default_value(""),
+            Arg::with_name("output")
+                .short("O")
+                .long("output")
+                .multiple(false)
+                .help("Output file's path")
+                .takes_value(true)
+                .default_value(""),
         )
         .arg(
             Arg::with_name("URL")
@@ -41,12 +41,12 @@ pub fn build_cli() -> App<'static, 'static> {
                 .required(true)
                 .index(1),
         )
-        /*
-        .arg(
-            Arg::with_name("PATH")
-                .help("The file location")
-                .required(false)
-                .index(2),
-        )
-        */
+    /*
+    .arg(
+        Arg::with_name("PATH")
+            .help("The file location")
+            .required(false)
+            .index(2),
+    )
+    */
 }

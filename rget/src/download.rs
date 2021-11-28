@@ -24,6 +24,7 @@ pub async fn download_range(
     path: &str,
     range: DownloadRange,
     mut pbar: ProgressBar<Pipe>,
+    pb: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     pbar.set_units(Units::Bytes);
     let client = &factory::build_client()?;
@@ -52,12 +53,16 @@ pub async fn download_range(
         let chunk = item.map_err(|_| "Error while downloading file".to_string())?;
         file.write(&chunk)
             .map_err(|_| "Error while writing to file".to_string())?;
-        // Update progress bar
-        let new = min(downloaded + (chunk.len() as u64), range.get_size());
-        downloaded = new;
-        pbar.set(new);
+        if pb {
+            // Update progress bar
+            let new = min(downloaded + (chunk.len() as u64), range.get_size());
+            downloaded = new;
+            pbar.set(new);
+        }
     }
-    pbar.finish();
+    if pb {
+        pbar.finish();
+    }
     Ok(())
 }
 

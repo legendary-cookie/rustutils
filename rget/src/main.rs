@@ -3,11 +3,11 @@
 mod cli;
 extern crate utils;
 
+use colored::*;
 use crossterm::execute;
 use pbr::MultiBar;
 use std::fs::File;
 use utils::download::download;
-use colored::*;
 
 #[tokio::main]
 async fn main() {
@@ -40,23 +40,22 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-	let mut path = matches.value_of("output").unwrap();
-	if path == "" {
-		let split = url.split('/');
-		let vec: Vec<&str> = split.collect();
-		path = vec[vec.len() - 1];
-	} else {
-		if std::path::Path::new(path).is_dir() {
-			let split = url.split('/');
-			let vec: Vec<&str> = split.collect();
-			let tpath = vec[vec.len() - 1];
-			std::env::set_current_dir(path)?;
-			path = tpath;
-		} 
-	}
-	
+    let mut path = matches.value_of("output").unwrap();
+    if path == "" {
+        let split = url.split('/');
+        let vec: Vec<&str> = split.collect();
+        path = vec[vec.len() - 1];
+    } else {
+        if std::path::Path::new(path).is_dir() {
+            let split = url.split('/');
+            let vec: Vec<&str> = split.collect();
+            let tpath = vec[vec.len() - 1];
+            std::env::set_current_dir(path)?;
+            path = tpath;
+        }
+    }
 
-	/*
+    /*
     if let Some(p) = matches.value_of("PATH") {
         if !std::path::Path::new(p).is_dir() {
             path = p;
@@ -75,7 +74,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         path = vec[vec.len() - 1];
     }
     */
-    
+
     /* REST OF THE STUFF */
     // Hide cursor
     execute!(std::io::stdout(), crossterm::cursor::Hide)?;
@@ -89,10 +88,12 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         println!("{} {}", "Got Status".red(), res.status());
         return Ok(());
     }
-    let total = res
-        .content_length()
-        .ok_or(format!(r#"Failed to get content length from {}
-Headers: {:#?}"#, &url, res.headers()))?;
+    let total = res.content_length().ok_or(format!(
+        r#"Failed to get content length from {}
+Headers: {:#?}"#,
+        &url,
+        res.headers()
+    ))?;
     println!("Total size: {}", common::byteconvert::convert(total as f64));
     let headers = res.headers();
     let f = File::create(path).map_err(|_| format!("Failed to create file '{}'", path))?;
@@ -118,7 +119,7 @@ Headers: {:#?}"#, &url, res.headers()))?;
                     //println!("{} - {}",common::byteconvert::convert(last as f64),common::byteconvert::convert((single * i) as f64));
                     let p = mb.create_bar(single);
                     let handle = tokio::spawn(async move {
-                        utils::download::download_range(&localurl, &localpath, range, p)
+                        utils::download::download_range(&localurl, &localpath, range, p, progb)
                             .await
                             .unwrap();
                     });
@@ -128,7 +129,9 @@ Headers: {:#?}"#, &url, res.headers()))?;
                 }
             }
             let time_begin = std::time::SystemTime::now();
-            mb.listen();
+            if progb {
+                mb.listen();
+            }
             for t in threadmap.iter_mut() {
                 if let Some(handle) = t.take() {
                     handle.await.expect("Something wrent wrong in a task");
